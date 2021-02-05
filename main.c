@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define FORMAT_SHORT 1
+
 SDL_Surface *screen, *tmp;
 
 unsigned char* buffer;
@@ -107,7 +109,7 @@ int main(int argc, char* argv[])
 				file_pos += sizeof(inc);
 				fseek(fp,file_pos,SEEK_SET);
 				fwrite(&color_hold, 1, sizeof(color_hold), fp);
-				file_pos += 1;
+				file_pos += sizeof(color_hold);
 				fseek(fp,file_pos,SEEK_SET);
 				
 				printf("inc %d, color_hold %d, x %d\n", inc, color_hold, a);
