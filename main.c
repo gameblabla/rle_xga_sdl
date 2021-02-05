@@ -51,33 +51,6 @@ int main(int argc, char* argv[])
 	
 	buffer = malloc(tmp->w*tmp->h);
 	memcpy(buffer, tmp->pixels, tmp->w*tmp->h);
-	
-	/*while(!quit)
-	{
-		
-		while (SDL_PollEvent(&event)) 
-		{
-			switch(event.type) 
-			{
-				case SDL_KEYDOWN:
-					switch(event.key.keysym.sym) 
-					{
-						case SDLK_ESCAPE:
-							quit = 1;
-						break;
-						default:
-						break;
-					}
-				break;
-				case SDL_QUIT:
-					quit = 1;
-				break;
-			}
-		}
-		
-		SDL_BlitSurface(tmp, NULL, screen, NULL);
-		SDL_Flip(screen);
-	}*/
 
 	inc = 1;
 	fp = fopen(argv[2], "wb");
@@ -91,7 +64,6 @@ int main(int argc, char* argv[])
 	fseek(fp,5,SEEK_SET);
 	
 	color_hold = getpixel(tmp, 0, 0);
-	w = 0;
 	a = 0;
 	i = 0;
 	inc = 0;
@@ -100,7 +72,7 @@ int main(int argc, char* argv[])
 	{
 		a = 0;
 		color_hold = getpixel(tmp, a, i);
-		printf("\n\nNext line %d \n\n", i);
+		inc = 0;
 		for(a=0;a<=tmp->w;a++)
 		{
 			if (color_hold != getpixel(tmp, a, i))
@@ -111,8 +83,6 @@ int main(int argc, char* argv[])
 				fwrite(&color_hold, 1, sizeof(color_hold), fp);
 				file_pos += sizeof(color_hold);
 				fseek(fp,file_pos,SEEK_SET);
-				
-				printf("inc %d, color_hold %d, x %d\n", inc, color_hold, a);
 				inc = 1;
 			}
 			else
@@ -122,15 +92,8 @@ int main(int argc, char* argv[])
 			color_hold = getpixel(tmp, a, i);
 		}
 	}
-	
-	/*for(i=0;i<tmp->w*tmp->h;i++)
-	{
 
-	}*/
-	
-	//fprintf(fp, "%d", color_hold);
 	fclose(fp);
-	
 	
 	SDL_FreeSurface(screen);
 	SDL_FreeSurface(tmp);
