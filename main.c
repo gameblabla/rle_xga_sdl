@@ -7,22 +7,9 @@
 
 SDL_Surface *screen, *tmp;
 
-unsigned char* buffer;
-
-#ifdef FORMAT_SHORT
 unsigned short inc = 0;
-unsigned char format = 1;
-#else
-unsigned char inc = 0;
 unsigned char format = 0;
-#endif
 
-void fskip(FILE *fp, int num_bytes)
-{
-   int i;
-   for (i=0; i<num_bytes; i++)
-      fgetc(fp);
-}
 
 Uint32 getpixel(SDL_Surface *surface, int x, int y)
 {
@@ -41,32 +28,28 @@ int main(int argc, char* argv[])
 	unsigned char color_hold = 0;
 	unsigned long long file_pos = 0;
 	SDL_Color *palette;
-	int w;
 	
 	SDL_Init(SDL_INIT_VIDEO);
-	screen = SDL_SetVideoMode(320, 240, 8, SDL_HWSURFACE);
 	tmp = IMG_Load(argv[1]);
-	screen = SDL_SetVideoMode(tmp->w, tmp->h, 8, SDL_HWSURFACE);
 	SDL_SetPalette(screen, SDL_LOGPAL|SDL_PHYSPAL, tmp->format->palette->colors, 0, 256);
-	
-	buffer = malloc(tmp->w*tmp->h);
-	memcpy(buffer, tmp->pixels, tmp->w*tmp->h);
 
-	inc = 1;
 	fp = fopen(argv[2], "wb");
-	color_hold = 0;
+	
+	format = 2;
+	/* Format also supports a smaller size mode but this may not be doable depending
+	 * on the image format itself. */
+	if (argc > 3)
+	{
+		if (argv[3][0] == 's')
+		{
+			format = 1;
+		}
+	}
 	
 	fwrite(&format, 1, sizeof(unsigned char), fp);
-	fseek(fp,1,SEEK_SET);
 	fwrite(&tmp->w, 1, sizeof(unsigned short), fp);
-	fseek(fp,3,SEEK_SET);
 	fwrite(&tmp->h, 1, sizeof(unsigned short), fp);
-	fseek(fp,5,SEEK_SET);
 	
-	color_hold = getpixel(tmp, 0, 0);
-	a = 0;
-	i = 0;
-	inc = 0;
 	file_pos = 5;
 	for(i=0;i<=tmp->h;i++)
 	{
@@ -77,12 +60,8 @@ int main(int argc, char* argv[])
 		{
 			if (color_hold != getpixel(tmp, a, i))
 			{
-				fwrite(&inc, 1, sizeof(inc), fp);
-				file_pos += sizeof(inc);
-				fseek(fp,file_pos,SEEK_SET);
+				fwrite(&inc, 1, format, fp);
 				fwrite(&color_hold, 1, sizeof(color_hold), fp);
-				file_pos += sizeof(color_hold);
-				fseek(fp,file_pos,SEEK_SET);
 				inc = 1;
 			}
 			else
@@ -92,11 +71,8 @@ int main(int argc, char* argv[])
 			color_hold = getpixel(tmp, a, i);
 		}
 	}
-
 	fclose(fp);
-	
 	SDL_FreeSurface(screen);
 	SDL_FreeSurface(tmp);
-	free(buffer);
 	return 0;
 }

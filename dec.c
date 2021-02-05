@@ -10,13 +10,6 @@ unsigned char* buffer;
 unsigned short inc = 0;
 unsigned char format = 0;
 
-void fskip(FILE *fp, int num_bytes)
-{
-   int i;
-   for (i=0; i<num_bytes; i++)
-      fgetc(fp);
-}
-
 
 int main(int argc, char* argv[])
 {
@@ -43,16 +36,13 @@ int main(int argc, char* argv[])
 	rewind (fp);
 	
 	fread(&format, 1, sizeof(unsigned char), fp);
-	fseek(fp,1,SEEK_SET);
 	fread(&width, 1, sizeof(unsigned short), fp);
-	fseek(fp,3,SEEK_SET);
 	fread(&height, 1, sizeof(unsigned short), fp);
-	fseek(fp,5,SEEK_SET);
 
 	screen = SDL_SetVideoMode(320, 240, 8, SDL_HWSURFACE);
 	tmp = IMG_Load(argv[2]);
-	screen = SDL_SetVideoMode(tmp->w, tmp->h, 8, SDL_HWSURFACE);
-	scr = SDL_CreateRGBSurface(SDL_HWSURFACE, tmp->w, tmp->h, 8, 0,0,0,0);
+	screen = SDL_SetVideoMode(1280, 720, 8, SDL_HWSURFACE);
+	scr = SDL_CreateRGBSurface(SDL_HWSURFACE, 1280, 720, 8, 0,0,0,0);
 	
 	SDL_SetPalette(screen, SDL_LOGPAL|SDL_PHYSPAL, tmp->format->palette->colors, 0, 256);
 	SDL_SetPalette(scr, SDL_LOGPAL|SDL_PHYSPAL, tmp->format->palette->colors, 0, 256);
@@ -66,33 +56,22 @@ int main(int argc, char* argv[])
 	//fread(buffer, lSize, 1, fp);
 	unsigned short increment = 0;
 	unsigned char color = 0;
-	unsigned char sized = 0;
 	w = 0;
 	h = 0;
 	file_pos = 5;
 	
-	if (format == 0)
-	{
-		sized = sizeof(unsigned char);
-	}
-	else
-	{
-		sized = sizeof(unsigned short);
-	}
-	
 	for(i=0;i<lSize;i++)
 	{
-		fread(&increment, 1, sized, fp);
-		file_pos += sized;
-		fseek(fp,file_pos,SEEK_SET);
-		
+		fread(&increment, 1, format, fp);
 		fread(&color, 1, sizeof(unsigned char), fp);
-		file_pos += sizeof(unsigned char);
-		fseek(fp,file_pos,SEEK_SET);
 		
 		rct.x = w;
 		rct.y = h;
 		rct.w = increment;
+		
+		// Don't overdraw
+		//if ((rct.x + rct.w) > tmp->w) rct.w = tmp->w - rct.x;
+		
 		rct.h = 1;
 		SDL_FillRect(scr, &rct, color);
 		
