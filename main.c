@@ -3,13 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define FORMAT_SHORT 1
-
 SDL_Surface *screen, *tmp;
 
 unsigned short inc = 0;
 unsigned char format = 0;
-
 
 Uint32 getpixel(SDL_Surface *surface, int x, int y)
 {
@@ -28,6 +25,8 @@ int main(int argc, char* argv[])
 	unsigned char color_hold = 0;
 	unsigned long long file_pos = 0;
 	SDL_Color *palette;
+	
+	int b = 0;
 	
 	SDL_Init(SDL_INIT_VIDEO);
 	tmp = IMG_Load(argv[1]);
@@ -51,12 +50,14 @@ int main(int argc, char* argv[])
 	fwrite(&tmp->h, 1, sizeof(unsigned short), fp);
 	
 	file_pos = 5;
-	for(i=0;i<=tmp->h;i++)
+	/* RIP : Gameblabla. Thanks irixxxx for fixing my encoder */
+	for(i=0;i<tmp->h;i++)
 	{
-		a = 0;
-		color_hold = getpixel(tmp, a, i);
-		inc = 0;
-		for(a=0;a<=tmp->w;a++)
+		color_hold = getpixel(tmp, 0, i);
+		inc = 1;
+		// a is set to 1 since we are already reading the pixel before entering the loop
+		// Also we use < instead of <= to avoid overdrawing especially after we write out the rest.
+		for(a=1;a<tmp->w;a++)
 		{
 			if (color_hold != getpixel(tmp, a, i))
 			{
@@ -70,6 +71,9 @@ int main(int argc, char* argv[])
 			}
 			color_hold = getpixel(tmp, a, i);
 		}
+		// Write out the remaining pixels that may have not written
+		fwrite(&inc, 1, format, fp);
+		fwrite(&color_hold, 1, sizeof(color_hold), fp);
 	}
 	fclose(fp);
 	SDL_FreeSurface(screen);
